@@ -293,6 +293,26 @@ void andor3::imageTask()
                 if ((strcmp(encodingString, "Mono12")==0) || 
                     (strcmp(encodingString, "Mono16")==0) ||
                     (strcmp(encodingString, "Mono32")==0)) {
+                    
+                    // Fix 12 bit pixel encoding by masking upper 4 bit
+                    if (strcmp(encodingString, "Mono12")==0){
+                        unsigned int invert=0;
+                        for(int x = 0; x < size; x += (int)(stride-1)) {
+                            if(!invert) {
+                                for (size_t j = 0; j < (int)(stride-1); j+=2) {
+                                    *(image+x+j+1) = *(image+x+j+1) & 0xF;
+                                }
+                            }
+                            else {
+                                for (size_t j = 0; j < (int)(stride); j+=2) {
+                                    *(image+x+j) = *(image+x+j) & 0xF;
+                                }
+                                x+=2;                                
+                            }
+                            invert = !invert;
+                        }
+                    }
+
                     AT_U8 *p;
 
                     p = (AT_U8 *)pImage->pData;
